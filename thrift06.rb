@@ -6,6 +6,8 @@ class Thrift06 < Formula
   url 'http://archive.apache.org/dist/thrift/0.6.1/thrift-0.6.1.tar.gz'
   md5 'e1ec722d5f38077a23a32c4de4d4ce94'
 
+  conflicts_with 'thrift'
+
   depends_on 'boost'
 
   def install
