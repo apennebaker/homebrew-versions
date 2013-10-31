@@ -34,7 +34,6 @@ class Gcc43 < Formula
   option 'enable-all-languages', 'Enable all compilers and languages, except Ada'
   option 'enable-nls', 'Build with native language support (localization)'
   option 'enable-profiled-build', 'Make use of profile guided optimization when bootstrapping GCC'
-  option 'enable-multilib', 'Build with multilib support'
 
   depends_on 'gmp4'
   depends_on 'mpfr2'
@@ -75,31 +74,27 @@ class Gcc43 < Formula
       languages << 'obj-c++' if build.include? 'enable-objcxx'
     end
 
-    # Sandbox the GCC lib, libexec and include directories so they don't wander
-    # around telling small children there is no Santa Claus. This results in a
-    # partially keg-only brew following suggestions outlined in the "How to
-    # install multiple versions of GCC" section of the GCC FAQ:
-    #     http://gcc.gnu.org/faq.html#multiple
-    gcc_prefix = prefix + 'gcc'
+    version_suffix = version.to_s.slice(/\d\.\d/)
 
     args = [
       "--build=#{arch}-apple-darwin#{osmajor}",
-      # Sandbox everything...
-      "--prefix=#{gcc_prefix}",
-      # ...except the stuff in share...
-      "--datadir=#{share}",
-      "--mandir=#{man}",
-      # ...and the binaries...
-      "--bindir=#{bin}",
-      # ...which are tagged with a suffix to distinguish them.
+      "--prefix=#{prefix}",
       "--enable-languages=#{languages.join(',')}",
-      "--program-suffix=-#{version.to_s.slice(/\d\.\d/)}",
+      # Make most executables versioned to avoid conflicts.
+      "--program-suffix=-#{version_suffix}",
       "--with-gmp=#{Formula.factory('gmp4').opt_prefix}",
       "--with-mpfr=#{Formula.factory('mpfr2').opt_prefix}",
       "--with-system-zlib",
+      # This ensures lib, libexec, include are sandboxed so that they
+      # don't wander around telling little children there is no Santa
+      # Claus.
+      "--enable-version-specific-runtime-libs",
       "--enable-stage1-checking",
       "--enable-checking=release",
-      # a no-op unless --HEAD is built because in head warnings will raise errs.
+      # Multilib building is broken in GCC 4.3 on Darwin.
+      "--disable-multilib",
+      # A no-op unless --HEAD is built because in head warnings will
+      # raise errors. But still a good idea to include.
       "--disable-werror"
     ]
 
@@ -109,11 +104,6 @@ class Gcc43 < Formula
       args << "--with-ecj-jar=#{Formula.factory('ecj').opt_prefix}/share/java/ecj.jar"
     end
 
-    if build.include? 'enable-multilib'
-      args << '--enable-multilib'
-    else
-      args << '--disable-multilib'
-    end
 
     mkdir 'build' do
       unless MacOS::CLT.installed?
@@ -140,9 +130,38 @@ class Gcc43 < Formula
       # deja-gnu formula must be installed in order to do this.
 
       system 'make install'
-
-      # Remove conflicting manpages in man7
-      man7.rmtree
     end
+
+    # Handle conflicts between GCC formulae.
+
+    # Remove libffi stuff, which is not needed after GCC is built.
+    Dir.glob(prefix/"**/libffi.*") { |file| File.delete file }
+
+    # Rename libiberty.a.
+    Dir.glob(prefix/"**/libiberty.*") { |file| add_suffix file, version_suffix }
+
+    # Rename man7.
+    Dir.glob(man7/"*.7") { |file| add_suffix file, version_suffix }
+
+    # Rename java properties
+    if build.include? 'enable-java' or build.include? 'enable-all-languages'
+      config_files = [
+        "#{lib}/logging.properties",
+        "#{lib}/security/classpath.security",
+        "#{lib}/i386/logging.properties",
+        "#{lib}/i386/security/classpath.security"
+      ]
+
+      config_files.each do |file|
+        add_suffix file, version_suffix if File.exists? file
+      end
+    end
+  end
+
+  def add_suffix file, suffix
+    dir = File.dirname(file)
+    ext = File.extname(file)
+    base = File.basename(file, ext)
+    File.rename file, "#{dir}/#{base}-#{suffix}#{ext}"
   end
 end
