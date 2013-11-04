@@ -53,6 +53,9 @@ class Gcc44 < Formula
   end
 
   def install
+    # GCC bootstraps itself, so it is OK to have an incompatible C++ stdlib
+    cxxstdlib_check :skip
+
     # GCC will suffer build errors if forced to use a particular linker.
     ENV.delete 'LD'
 

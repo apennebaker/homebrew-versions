@@ -24,8 +24,10 @@ class Ruby182 < Formula
     build 2326
   end
 
-  # Fixes up a few incompatibilities with modern OpenSSL
+  # First patch fixes up a few incompatibilities with modern OpenSSL
   # ossl_x509stctx_set_time() definition taken from 1.8.6
+  # Second patch backports a compatibility fix from Ruby 1.8.7 for newer OpenSSL versions
+  # Third patch fixes the type of a macro, also taken from 1.8.7
   def patches; DATA; end
 
   def install
@@ -63,14 +65,6 @@ class Ruby182 < Formula
     system "./configure", *args
     system "make"
     system "make install"
-  end
-
-  def caveats; <<-EOS.undent
-    NOTE: By default, gem installed binaries will be placed into:
-      #{opt_prefix}/bin
-
-    You may want to add this to your PATH.
-    EOS
   end
 end
 
@@ -117,3 +111,35 @@ index 138e710..79fa341 100644
      return time;
  }
 
+diff --git a/ext/openssl/ossl.h b/ext/openssl/ossl.h
+index 8dfd8da..25a62bc 100644
+--- a/ext/openssl/ossl.h
++++ b/ext/openssl/ossl.h
+@@ -107,6 +107,13 @@ extern VALUE eOSSLError;
+ } while (0)
+ 
+ /*
++* Compatibility
++*/
++#if OPENSSL_VERSION_NUMBER >= 0x10000000L
++#define STACK _STACK
++#endif
++
++/*
+  * String to HEXString conversion
+  */
+ int string2hex(char *, int, char **, int *);
+
+diff --git a/ext/openssl/ossl.c b/ext/openssl/ossl.c
+index 1b8f76a..73fdd03 100644
+--- a/ext/openssl/ossl.c
++++ b/ext/openssl/ossl.c
+@@ -92,7 +92,7 @@ ossl_x509_ary2sk(VALUE ary)
+ 
+ #define OSSL_IMPL_SK2ARY(name, type)	        \
+ VALUE						\
+-ossl_##name##_sk2ary(STACK *sk)			\
++ossl_##name##_sk2ary(STACK_OF(type) *sk)			\
+ {						\
+     type *t;					\
+     int i, num;					\
