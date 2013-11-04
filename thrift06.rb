@@ -6,7 +6,7 @@ class Thrift06 < Formula
   url 'http://archive.apache.org/dist/thrift/0.6.1/thrift-0.6.1.tar.gz'
   md5 'e1ec722d5f38077a23a32c4de4d4ce94'
 
-  conflicts_with 'thrift'
+  keg_only :preinstalled, "May conflict with preinstalled thrift"
 
   depends_on 'boost'
 
