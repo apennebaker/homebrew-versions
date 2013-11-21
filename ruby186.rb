@@ -33,8 +33,6 @@ class Ruby186 < Formula
   def patches; DATA; end
 
   def install
-    system "autoconf" if build.head?
-
     args = %W[--prefix=#{prefix} --enable-shared]
     args << "--program-suffix=20" if build.with? "suffix"
     args << "--with-arch=#{Hardware::CPU.universal_archs.join(',')}" if build.universal?

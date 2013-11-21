@@ -35,8 +35,6 @@ class Ruby182 < Formula
     # instead of the one it just built
     ENV.prepend 'LDFLAGS', '-L.'
 
-    system "autoconf" if build.head?
-
     args = %W[--prefix=#{prefix} --mandir=#{man} --enable-shared]
     args << "--program-suffix=20" if build.with? "suffix"
     args << "--with-arch=#{Hardware::CPU.universal_archs.join(',')}" if build.universal?

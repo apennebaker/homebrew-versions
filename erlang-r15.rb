@@ -26,13 +26,11 @@ class ErlangR15 < Formula
   url 'https://github.com/erlang/otp/archive/OTP_R15B03-1.tar.gz'
   sha1 '7843070f5d325f95ef13022fc416b22b6b14120d'
 
-  # remove the autoreconf if possible
+  depends_on :autoconf
   depends_on :automake
   depends_on :libtool
 
-  fails_with :llvm do
-    build 2334
-  end
+  fails_with :llvm
 
   option 'disable-hipe', "Disable building hipe; fails on various OS X systems"
   option 'halfword', 'Enable halfword emulator (64-bit builds only)'
@@ -41,12 +39,6 @@ class ErlangR15 < Formula
 
   def install
     ohai "Compilation takes a long time; use `brew install -v erlang` to see progress" unless ARGV.verbose?
-
-    if ENV.compiler == :llvm
-      # Don't use optimizations. Fixes build on Lion/Xcode 4.2
-      ENV.remove_from_cflags /-O./
-      ENV.append_to_cflags '-O0'
-    end
 
     # Do this if building from a checkout to generate configure
     system "./otp_build autoconf" if File.exist? "otp_build"

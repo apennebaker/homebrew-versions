@@ -26,11 +26,8 @@ class Gcc45 < Formula
   mirror 'http://ftp.gnu.org/gnu/gcc/gcc-4.5.4/gcc-4.5.4.tar.bz2'
   sha1 'cb692e6ddd1ca41f654e2ff24b1b57f09f40e211'
 
-  option 'enable-cxx', 'Build the g++ compiler'
   option 'enable-fortran', 'Build the gfortran compiler'
   option 'enable-java', 'Build the gcj compiler'
-  option 'enable-objc', 'Enable Objective-C language support'
-  option 'enable-objcxx', 'Enable Objective-C++ language support'
   option 'enable-all-languages', 'Enable all compilers and languages, except Ada'
   option 'enable-nls', 'Build with native language support (localization)'
   option 'enable-profiled-build', 'Make use of profile guided optimization when bootstrapping GCC'
@@ -67,15 +64,11 @@ class Gcc45 < Formula
       # (gnat) to bootstrap.
       languages = %w[c c++ fortran java objc obj-c++]
     else
-      # The C compiler is always built, but additional defaults can be added
-      # here.
-      languages = %w[c]
+      # C, C++, ObjC compilers are always built
+      languages = %w[c c++ objc obj-c++]
 
-      languages << 'c++' if build.include? 'enable-cxx'
       languages << 'fortran' if build.include? 'enable-fortran'
       languages << 'java' if build.include? 'enable-java'
-      languages << 'objc' if build.include? 'enable-objc'
-      languages << 'obj-c++' if build.include? 'enable-objcxx'
     end
 
     version_suffix = version.to_s.slice(/\d\.\d/)
@@ -150,7 +143,7 @@ class Gcc45 < Formula
       system 'make install'
 
       # `make install` neglects to transfer an essential plugin header file.
-      Pathname.new(Dir[gcc_prefix.join *%w[** plugin include config]].first).install '../gcc/config/darwin-sections.def' if MacOS.version > :tiger
+      Pathname.new(Dir[prefix.join *%w[** plugin include config]].first).install '../gcc/config/darwin-sections.def' if MacOS.version > :tiger
     end
 
     # Handle conflicts between GCC formulae.
@@ -163,6 +156,10 @@ class Gcc45 < Formula
 
     # Rename man7.
     Dir.glob(man7/"*.7") { |file| add_suffix file, version_suffix }
+
+    # Even when suffixes are appended, the info pages conflict when
+    # install-info is run. TODO fix this.
+    info.rmtree
 
     # Rename java properties
     if build.include? 'enable-java' or build.include? 'enable-all-languages'

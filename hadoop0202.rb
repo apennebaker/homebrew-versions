@@ -4,7 +4,6 @@ class Hadoop0202 < Formula
   url 'http://archive.apache.org/dist/hadoop/common/hadoop-0.20.2/hadoop-0.20.2.tar.gz'
   homepage 'http://hadoop.apache.org/'
   sha1 'c15d89f8f379e5ef242e36a881e45e79c934bfd7'
-  version '0.20.2'
 
   keg_only "Conflicts with hadoop in core."
 
