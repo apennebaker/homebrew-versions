@@ -17,7 +17,7 @@ class Maven30 < Formula
     bin.install_symlink Dir["#{libexec}/bin/*"]
   end
 
-  def cavets; <<-EOS.undent
+  def caveats; <<-EOS.undent
     WARNING: This older version will conflict with Maven if installed at the
     same time.
     EOS

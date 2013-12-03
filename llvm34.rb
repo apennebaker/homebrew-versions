@@ -3,30 +3,30 @@ require 'formula'
 class Llvm34 < Formula
   homepage  'http://llvm.org/'
   head do
-    url 'http://llvm.org/git/llvm.git'
+    url 'http://llvm.org/git/llvm.git', :branch => 'release_34'
 
     resource 'clang' do
-      url 'http://llvm.org/git/clang.git'
+      url 'http://llvm.org/git/clang.git', :branch => 'release_34'
     end
 
     resource 'clang-tools-extra' do
-      url 'http://llvm.org/git/clang-tools-extra.git'
+      url 'http://llvm.org/git/clang-tools-extra.git', :branch => 'release_34'
     end
 
     resource 'compiler-rt' do
-      url 'http://llvm.org/git/compiler-rt.git'
+      url 'http://llvm.org/git/compiler-rt.git', :branch => 'release_34'
     end
 
     resource 'polly' do
-      url 'http://llvm.org/git/polly.git'
+      url 'http://llvm.org/git/polly.git', :branch => 'release_34'
     end
 
     resource 'libcxx' do
-      url 'http://llvm.org/git/libcxx.git'
+      url 'http://llvm.org/git/libcxx.git', :branch => 'release_34'
     end
 
     resource 'libcxxabi' do
-      url 'http://llvm.org/git/libcxxabi.git'
+      url 'http://llvm.org/git/libcxxabi.git', :branch => 'release_32'
     end if MacOS.version <= :snow_leopard
   end
 
@@ -208,7 +208,7 @@ class Llvm34 < Formula
     end
 
     if build.with? 'libcxx'
-      include_path = HOMEBREW_PREFIX/"lib/llvm-#{ver}/lib/c++/v1"
+      include_path = HOMEBREW_PREFIX/"lib/llvm-#{ver}/include/c++/v1"
       libs_path = HOMEBREW_PREFIX/"lib/llvm-#{ver}/usr/lib"
       s += <<-EOS.undent
 

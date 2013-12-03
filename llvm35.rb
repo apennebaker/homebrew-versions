@@ -1,72 +1,33 @@
 require 'formula'
 
-class Llvm33 < Formula
+class Llvm35 < Formula
   homepage  'http://llvm.org/'
-
-  stable do
-    url 'http://llvm.org/releases/3.3/llvm-3.3.src.tar.gz'
-    sha1 'c6c22d5593419e3cb47cbcf16d967640e5cce133'
-
-    resource 'clang' do
-      url 'http://llvm.org/releases/3.3/cfe-3.3.src.tar.gz'
-      sha1 'ccd6dbf2cdb1189a028b70bcb8a22509c25c74c8'
-    end
-
-    resource 'clang-tools-extra' do
-      url 'http://llvm.org/releases/3.3/clang-tools-extra-3.3.src.tar.gz'
-      sha1 '6f7af9ba8014f7e286a02e4ae2e3f2017b8bfac2'
-    end
-
-    resource 'compiler-rt' do
-      url 'http://llvm.org/releases/3.3/compiler-rt-3.3.src.tar.gz'
-      sha1 '745386ec046e3e49742e1ecb6912c560ccd0a002'
-    end
-
-    resource 'polly' do
-      url 'http://llvm.org/releases/3.3/polly-3.3.src.tar.gz'
-      sha1 'eb75f5674fedf77425d16c9c0caec04961f03e04'
-    end
-
-    resource 'libcxx' do
-      url 'http://llvm.org/releases/3.3/libcxx-3.3.src.tar.gz'
-      sha1 '7bea00bc1031bf3bf6c248e57c1f4e0874c18c04'
-    end
-  end
-
   head do
-    url 'http://llvm.org/git/llvm.git', :branch => 'release_33'
+    url 'http://llvm.org/git/llvm.git'
 
     resource 'clang' do
-      url 'http://llvm.org/git/clang.git', :branch => 'release_33'
+      url 'http://llvm.org/git/clang.git'
     end
 
     resource 'clang-tools-extra' do
-      url 'http://llvm.org/git/clang-tools-extra.git', :branch => 'release_33'
+      url 'http://llvm.org/git/clang-tools-extra.git'
     end
 
     resource 'compiler-rt' do
-      url 'http://llvm.org/git/compiler-rt.git', :branch => 'release_33'
+      url 'http://llvm.org/git/compiler-rt.git'
     end
 
     resource 'polly' do
-      url 'http://llvm.org/git/polly.git', :branch => 'release_33'
+      url 'http://llvm.org/git/polly.git'
     end
 
     resource 'libcxx' do
-      url 'http://llvm.org/git/libcxx.git', :branch => 'release_33'
+      url 'http://llvm.org/git/libcxx.git'
     end
-  end
 
-  if MacOS.version <= :snow_leopard
-    # Not tarball release for libc++abi yet. Using latest branch.
     resource 'libcxxabi' do
-      url 'http://llvm.org/git/libcxxabi.git', :branch => 'release_32'
-    end
-
-    resource 'clang-unwind-patch' do
-      url 'http://llvm.org/viewvc/llvm-project/cfe/trunk/lib/Headers/unwind.h?r1=172666&r2=189535&view=patch', :using => :nounzip
-      sha1 'b40f6dba4928add36945c50e5b89ca0988147cd2'
-    end
+      url 'http://llvm.org/git/libcxxabi.git'
+    end if MacOS.version <= :snow_leopard
   end
 
   option :universal
@@ -79,14 +40,14 @@ class Llvm33 < Formula
   option 'disable-assertions', 'Speeds up LLVM, but provides less debug information'
 
   depends_on :python => :recommended
-  depends_on 'gmp4'
-  depends_on 'isl011'
-  depends_on 'cloog018'
+  depends_on 'gmp'
+  depends_on 'isl'
+  depends_on 'cloog'
   depends_on 'libffi' => :recommended
 
   env :std if build.universal?
 
-  def ver; '3.3'; end # version suffix
+  def ver; '3.5'; end # version suffix
 
   def install
     # LLVM installs its own standard library which confuses stdlib checking.
@@ -118,13 +79,7 @@ class Llvm33 < Formula
     libcxx_buildpath.install resource('libcxx') if build.with? 'libcxx'
 
     # On Snow Leopard and below libc++abi is not shipped but needed for libc++.
-    if MacOS.version <= :snow_leopard and build.with? 'libcxx'
-      libcxxabi_buildpath.install resource('libcxxabi')
-      buildpath.install resource('clang-unwind-patch')
-      cd clang_buildpath do
-        system "patch -p2 -N < #{buildpath}/unwind.h"
-      end
-    end
+    libcxxabi_buildpath.install resource('libcxxabi') if MacOS.version <= :snow_leopard and build.with? 'libcxx'
 
     if build.universal?
       ENV['UNIVERSAL'] = '1'
@@ -141,9 +96,9 @@ class Llvm33 < Formula
       # As of LLVM 3.1, attempting to build ocaml bindings with Homebrew's
       # OCaml 3.12.1 results in errors.
       "--disable-bindings",
-      "--with-gmp=#{Formula.factory('gmp4').opt_prefix}",
-      "--with-isl=#{Formula.factory('isl011').opt_prefix}",
-      "--with-cloog=#{Formula.factory('cloog018').opt_prefix}"
+      "--with-gmp=#{Formula.factory('gmp').opt_prefix}",
+      "--with-isl=#{Formula.factory('isl').opt_prefix}",
+      "--with-cloog=#{Formula.factory('cloog').opt_prefix}"
     ]
 
     if build.include? 'all-targets'
@@ -208,7 +163,7 @@ class Llvm33 < Formula
     end if build.with? 'libcxx'
 
     # Install Clang tools
-    (share/"clang-#{ver}/tools").install clang_buildpath/'tools/scan-build', clang_buildpath/'tools/scan-view' if build.with? 'clang'
+    (share/"clang-#{ver}/tools").install buildpath/'tools/clang/tools/scan-build', buildpath/'tools/clang/tools/scan-view' if build.with? 'clang'
 
     if python
       # Install llvm python bindings.
@@ -253,7 +208,7 @@ class Llvm33 < Formula
     end
 
     if build.with? 'libcxx'
-      include_path = HOMEBREW_PREFIX/"lib/llvm-#{ver}/lib/c++/v1"
+      include_path = HOMEBREW_PREFIX/"lib/llvm-#{ver}/include/c++/v1"
       libs_path = HOMEBREW_PREFIX/"lib/llvm-#{ver}/usr/lib"
       s += <<-EOS.undent
 
