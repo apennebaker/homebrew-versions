@@ -11,11 +11,6 @@ class Thrift06 < Formula
   depends_on 'boost'
 
   def install
-    # No reason for this step is known. On Lion at least the pkg.m4 doesn't
-    # even exist. Turns out that it isn't needed on Lion either. Possibly it
-    # isn't needed anymore at all but I can't test that.
-    cp "/usr/X11/share/aclocal/pkg.m4", "aclocal" if MACOS_VERSION < :lion
-
     system "./bootstrap.sh" if version == 'HEAD'
 
     # Language bindings try to install outside of Homebrew's prefix, so
